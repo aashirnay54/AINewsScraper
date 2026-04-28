@@ -1,0 +1,118 @@
+ai_sources:
+  rss:
+    - name: Anthropic
+      url: https://www.anthropic.com/news/rss.xml
+    - name: OpenAI
+      url: https://openai.com/blog/rss.xml
+    - name: Google DeepMind
+      url: https://deepmind.google/blog/rss.xml
+    - name: Hugging Face
+      url: https://huggingface.co/blog/feed.xml
+    - name: Latent Space
+      url: https://www.latent.space/feed
+    - name: Import AI
+      url: https://importai.substack.com/feed
+    - name: The Batch
+      url: https://www.deeplearning.ai/the-batch/feed/
+
+  arxiv_categories:
+    - cs.CL
+    - cs.AI
+    - cs.LG
+
+  hn_keywords:
+    - llm
+    - claude
+    - anthropic
+    - openai
+    - gemini
+    - transformer
+    - "ai model"
+    - "language model"
+
+  reddit:
+    - LocalLLaMA
+    - MachineLearning
+
+market_sources:
+  rss:
+    - name: Reuters Business
+      url: https://www.reutersagency.com/feed/?best-topics=business-finance
+    - name: MarketWatch Top Stories
+      url: https://feeds.marketwatch.com/marketwatch/topstories/
+    - name: Yahoo Finance
+      url: https://finance.yahoo.com/news/rssindex
+    - name: CNBC Top News
+      url: https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114
+    - name: Seeking Alpha Market News
+      url: https://seekingalpha.com/market_currents.xml
+
+watchlist:
+  tickers:
+    - symbol: NVDA
+      name: NVIDIA
+    - symbol: MSFT
+      name: Microsoft
+    - symbol: GOOGL
+      name: Alphabet
+    - symbol: META
+      name: Meta Platforms
+    - symbol: AMD
+      name: AMD
+    - symbol: AAPL
+      name: Apple
+    - symbol: TSLA
+      name: Tesla
+
+  indices:
+    US:
+      - symbol: ^GSPC
+        name: S&P 500
+      - symbol: ^NDX
+        name: Nasdaq 100
+      - symbol: ^DJI
+        name: Dow Jones
+    Europe:
+      - symbol: ^FTSE
+        name: FTSE 100
+      - symbol: ^GDAXI
+        name: DAX
+      - symbol: ^STOXX50E
+        name: Euro Stoxx 50
+    Asia:
+      - symbol: ^N225
+        name: Nikkei 225
+      - symbol: ^HSI
+        name: Hang Seng
+      - symbol: 000001.SS
+        name: Shanghai Composite
+
+  sector_etfs:
+    - symbol: XLK
+      name: Technology
+    - symbol: XLF
+      name: Financials
+    - symbol: XLE
+      name: Energy
+    - symbol: XLV
+      name: Healthcare
+    - symbol: XLY
+      name: Consumer Discretionary
+    - symbol: XLP
+      name: Consumer Staples
+    - symbol: XLI
+      name: Industrials
+    - symbol: XLU
+      name: Utilities
+    - symbol: XLB
+      name: Materials
+    - symbol: XLRE
+      name: Real Estate
+    - symbol: XLC
+      name: Communication Services
+
+settings:
+  max_ai_items: 12
+  max_market_items: 4
+  max_age_hours: 30
+  llm_model: gemini-2.5-flash-lite

@@ -1,0 +1,5 @@
+google-genai>=0.3.0
+feedparser>=6.0.10
+yfinance>=0.2.40
+pyyaml>=6.0
+requests>=2.31.0
