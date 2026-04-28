@@ -111,8 +111,94 @@ watchlist:
     - symbol: XLC
       name: Communication Services
 
+tech_companies:
+  - name: Apple
+    symbol: AAPL
+    keywords:
+      - apple
+      - iphone
+      - macbook
+      - "tim cook"
+      - ios
+      - macos
+    newsroom: https://www.apple.com/newsroom/rss-feed.rss
+
+  - name: Microsoft
+    symbol: MSFT
+    keywords:
+      - microsoft
+      - azure
+      - windows
+      - "satya nadella"
+      - copilot
+      - xbox
+    newsroom: https://blogs.microsoft.com/feed/
+
+  - name: Google/Alphabet
+    symbol: GOOGL
+    keywords:
+      - google
+      - alphabet
+      - "sundar pichai"
+      - android
+      - chrome
+      - pixel
+    newsroom: https://blog.google/rss/
+
+  - name: Meta
+    symbol: META
+    keywords:
+      - meta
+      - facebook
+      - instagram
+      - whatsapp
+      - "mark zuckerberg"
+      - threads
+    newsroom: https://about.fb.com/feed/
+
+  - name: Amazon
+    symbol: AMZN
+    keywords:
+      - amazon
+      - aws
+      - "andy jassy"
+      - "jeff bezos"
+      - prime
+      - alexa
+    newsroom: https://press.aboutamazon.com/rss/news-releases.xml
+
+  - name: Tesla
+    symbol: TSLA
+    keywords:
+      - tesla
+      - "elon musk"
+      - cybertruck
+      - model 3
+      - model y
+      - autopilot
+    newsroom: null
+
+  - name: NVIDIA
+    symbol: NVDA
+    keywords:
+      - nvidia
+      - "jensen huang"
+      - rtx
+      - cuda
+      - h100
+      - a100
+    newsroom: https://blogs.nvidia.com/feed/
+
+  - name: Netflix
+    symbol: NFLX
+    keywords:
+      - netflix
+      - streaming
+    newsroom: https://about.netflix.com/en/news.rss
+
 settings:
   max_ai_items: 12
   max_market_items: 4
+  max_tech_companies: 8
   max_age_hours: 30
   llm_model: gemini-2.5-flash-lite

@@ -239,6 +239,92 @@ The sentence should blend market sentiment with AI news themes. Be concise and i
         return "Markets and AI developments continue to evolve."
 
 
+def curate_tech_companies(
+    company_news: dict[str, list[dict[str, Any]]],
+    model: str,
+    max_companies: int = 8,
+) -> list[dict[str, Any]]:
+    """
+    Use Gemini to analyze tech company news and create company summaries.
+
+    Args:
+        company_news: Dict mapping company name to list of articles
+        model: Gemini model name
+        max_companies: Maximum companies to include
+
+    Returns:
+        List of company summary dicts with name, summary, highlights, sentiment
+    """
+    if not company_news:
+        return []
+
+    # Build input for LLM
+    company_summaries = []
+
+    for company_name, articles in list(company_news.items())[:max_companies]:
+        if not articles:
+            continue
+
+        # Prepare article text for this company
+        articles_text = "\n".join(
+            f"- {a.get('title', '')} (source: {a.get('source', '')})"
+            for a in articles[:20]  # Limit per company
+        )
+
+        prompt = f"""Analyze recent news about {company_name} and provide a concise summary.
+
+Articles:
+{articles_text}
+
+Return JSON with:
+- summary: 2-3 sentence overview of what {company_name} is doing/working on (string)
+- highlights: Array of 2-4 key developments, each as a short phrase (array of strings)
+- sentiment: Overall sentiment - "positive", "neutral", "negative", or "mixed" (string)
+- layoffs: true if there are layoffs/workforce reductions mentioned, false otherwise (boolean)
+
+Focus on: new products/services, major projects, strategic moves, layoffs, leadership changes, financial performance."""
+
+        try:
+            client = get_client()
+            response = client.models.generate_content(
+                model=model,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    temperature=0.3,
+                ),
+            )
+
+            result_text = response.text.strip()
+            company_data = json.loads(result_text)
+
+            company_summaries.append({
+                "name": company_name,
+                "summary": company_data.get("summary", "No recent significant news."),
+                "highlights": company_data.get("highlights", []),
+                "sentiment": company_data.get("sentiment", "neutral"),
+                "layoffs": company_data.get("layoffs", False),
+                "article_count": len(articles),
+            })
+
+            logger.info(f"Generated summary for {company_name}")
+
+        except Exception as e:
+            logger.warning(f"Failed to generate summary for {company_name}: {e}")
+            # Fallback: basic summary
+            company_summaries.append({
+                "name": company_name,
+                "summary": f"Tracking {len(articles)} recent articles about {company_name}.",
+                "highlights": [articles[0].get("title", "")[:60] if articles else ""],
+                "sentiment": "neutral",
+                "layoffs": False,
+                "article_count": len(articles),
+            })
+
+    logger.info(f"Generated {len(company_summaries)} tech company summaries")
+    return company_summaries
+
+
 def _fallback_curate(
     articles: list[dict[str, Any]],
     max_items: int,

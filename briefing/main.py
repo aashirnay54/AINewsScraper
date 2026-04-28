@@ -8,7 +8,7 @@ from pathlib import Path
 
 import yaml
 
-from . import llm, mailer, markets, sources, state, template
+from . import llm, mailer, markets, sources, state, techcompanies, template
 
 # Configure logging
 logging.basicConfig(
@@ -37,9 +37,13 @@ def run() -> None:
     max_age_hours = settings.get("max_age_hours", 30)
     max_ai_items = settings.get("max_ai_items", 12)
     max_market_items = settings.get("max_market_items", 4)
+    max_tech_companies = settings.get("max_tech_companies", 8)
     llm_model = settings.get("llm_model", "gemini-2.5-flash-lite")
 
-    logger.info(f"Config loaded: max_age={max_age_hours}h, max_ai={max_ai_items}, max_market={max_market_items}")
+    logger.info(
+        f"Config loaded: max_age={max_age_hours}h, max_ai={max_ai_items}, "
+        f"max_market={max_market_items}, max_tech={max_tech_companies}"
+    )
 
     # Step 2: Fetch AI news
     logger.info("Fetching AI news...")
@@ -54,6 +58,11 @@ def run() -> None:
     # Step 4: Fetch market data
     logger.info("Fetching market data...")
     market_data = markets.fetch_market_data(config)
+
+    # Step 4b: Fetch tech company news
+    logger.info("Fetching tech company news...")
+    tech_companies_cfg = config.get("tech_companies", [])
+    company_news = techcompanies.fetch_company_news(tech_companies_cfg, max_age_hours)
 
     # Step 5: Filter unseen articles
     logger.info("Filtering unseen articles...")
@@ -84,6 +93,26 @@ def run() -> None:
     logger.info("Curating market news with LLM...")
     curated_market = llm.curate_market_news(market_unseen, llm_model, max_market_items)
 
+    # Step 6b: Filter and curate tech company news
+    logger.info("Filtering unseen tech company news...")
+    # Flatten company news into single list for filtering
+    all_company_articles = []
+    for company_articles in company_news.values():
+        all_company_articles.extend(company_articles)
+
+    company_unseen_articles = state.filter_unseen(all_company_articles, seen)
+
+    # Rebuild company_news dict with only unseen articles
+    company_news_unseen: dict[str, list] = {}
+    for company_name in company_news.keys():
+        company_news_unseen[company_name] = [
+            a for a in company_unseen_articles
+            if a.get("source", "").startswith(company_name) or a.get("company") == company_name
+        ]
+
+    logger.info("Curating tech company summaries with LLM...")
+    tech_summaries = llm.curate_tech_companies(company_news_unseen, llm_model, max_tech_companies)
+
     # Step 7: Generate radar line
     logger.info("Generating radar line...")
     ai_headlines = [a.get("title", "") for a in curated_ai[:5]]
@@ -97,6 +126,7 @@ def run() -> None:
         market_data=market_data,
         radar_line=radar_line,
         stats=stats,
+        tech_companies=tech_summaries,
     )
 
     # Step 9: Send email (or save to file if no SMTP creds)
@@ -113,7 +143,7 @@ def run() -> None:
     today_iso = datetime.now().date().isoformat()
 
     # Combine all curated items for marking as seen
-    all_used = curated_ai + curated_market
+    all_used = curated_ai + curated_market + company_unseen_articles
     updated_seen = state.mark_seen(all_used, seen, today_iso)
     state.save_seen(updated_seen)
 

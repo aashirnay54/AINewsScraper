@@ -18,6 +18,7 @@ def render_email(
     market_data: dict[str, Any],
     radar_line: str,
     stats: dict[str, int],
+    tech_companies: list[dict[str, Any]] | None = None,
 ) -> tuple[str, str]:
     """
     Render the complete email as HTML and plain text.
@@ -28,6 +29,7 @@ def render_email(
         market_data: Market data with indices, watchlist, sectors
         radar_line: One-sentence radar summary
         stats: Dict with feeds_scanned, articles_processed counts
+        tech_companies: Optional list of tech company summaries
 
     Returns:
         Tuple of (html_content, plain_text_content)
@@ -44,6 +46,10 @@ def render_email(
     # Grouped AI sections
     html_parts.append(_render_ai_sections(ai_articles[1:] if ai_articles else []))
 
+    # Big Tech section (NEW)
+    if tech_companies:
+        html_parts.append(_render_tech_companies(tech_companies))
+
     # Markets section
     html_parts.append(_render_markets_section(market_data, radar_line))
 
@@ -57,7 +63,7 @@ def render_email(
     html = "\n".join(html_parts)
 
     # Build plain text version
-    plain = _render_plain_text(ai_articles, market_articles, market_data, radar_line, stats, today)
+    plain = _render_plain_text(ai_articles, market_articles, market_data, radar_line, stats, today, tech_companies)
 
     return html, plain
 
@@ -141,6 +147,68 @@ def _render_ai_sections(articles: list[dict[str, Any]]) -> str:
                 </p>
                 {f'<p style="margin: 0 0 4px 0; font-size: 13px; color: {GRAY}; line-height: 1.4;">{summary}</p>' if summary else ''}
                 <p style="margin: 0; font-size: 11px; color: {GRAY};">{source}</p>
+            </td>
+        </tr>""")
+
+    return "\n".join(html_parts)
+
+
+def _render_tech_companies(companies: list[dict[str, Any]]) -> str:
+    """Render Big Tech company summaries."""
+    if not companies:
+        return ""
+
+    html_parts = [f"""
+        <tr><td style="padding: 0 24px;"><hr style="border: none; border-top: 1px solid #e0e0e0; margin: 16px 0;"></td></tr>
+        <tr>
+            <td style="padding: 16px 24px;">
+                <h3 style="margin: 0 0 16px 0; font-size: 18px; color: {DARK};">Big Tech Watch</h3>
+            </td>
+        </tr>"""]
+
+    for company in companies:
+        name = company.get("name", "")
+        summary = company.get("summary", "")
+        highlights = company.get("highlights", [])
+        sentiment = company.get("sentiment", "neutral")
+        layoffs = company.get("layoffs", False)
+        article_count = company.get("article_count", 0)
+
+        # Sentiment colors
+        sentiment_colors = {
+            "positive": GREEN,
+            "negative": RED,
+            "neutral": GRAY,
+            "mixed": "#ff9800",
+        }
+        sentiment_color = sentiment_colors.get(sentiment, GRAY)
+
+        # Layoff badge
+        layoff_badge = ""
+        if layoffs:
+            layoff_badge = f'<span style="display: inline-block; background-color: {RED}; color: white; font-size: 10px; padding: 2px 6px; border-radius: 3px; margin-left: 8px; text-transform: uppercase; font-weight: 600;">Layoffs</span>'
+
+        # Build highlights list
+        highlights_html = ""
+        if highlights:
+            highlight_items = "".join(
+                f'<li style="margin: 4px 0; font-size: 13px; color: {DARK};">{h}</li>'
+                for h in highlights[:4]
+            )
+            highlights_html = f'<ul style="margin: 8px 0 0 0; padding-left: 20px;">{highlight_items}</ul>'
+
+        html_parts.append(f"""
+        <tr>
+            <td style="padding: 8px 24px;">
+                <div style="background-color: {LIGHT_GRAY}; padding: 16px; border-radius: 4px; border-left: 4px solid {sentiment_color};">
+                    <p style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: {DARK};">
+                        {name}
+                        {layoff_badge}
+                        <span style="font-size: 11px; color: {GRAY}; font-weight: 400; margin-left: 8px;">({article_count} articles)</span>
+                    </p>
+                    <p style="margin: 0; font-size: 14px; color: {DARK}; line-height: 1.5;">{summary}</p>
+                    {highlights_html}
+                </div>
             </td>
         </tr>""")
 
@@ -328,6 +396,7 @@ def _render_plain_text(
     radar_line: str,
     stats: dict[str, int],
     date: str,
+    tech_companies: list[dict[str, Any]] | None = None,
 ) -> str:
     """Render plain text version of the email."""
     lines = [
@@ -357,6 +426,29 @@ def _render_plain_text(
             article.get("url", ""),
             "",
         ])
+
+    # Big Tech section
+    if tech_companies:
+        lines.extend([
+            "",
+            "BIG TECH WATCH",
+            "-" * 20,
+        ])
+        for company in tech_companies:
+            name = company.get("name", "")
+            summary = company.get("summary", "")
+            highlights = company.get("highlights", [])
+            layoffs = company.get("layoffs", False)
+            layoff_text = " [LAYOFFS]" if layoffs else ""
+
+            lines.extend([
+                f"{name}{layoff_text}:",
+                f"  {summary}",
+            ])
+            if highlights:
+                for h in highlights[:4]:
+                    lines.append(f"  • {h}")
+            lines.append("")
 
     # Markets
     lines.extend([
